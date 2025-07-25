@@ -1,0 +1,107 @@
+<h2>My Bullet Journal</h2>
+
+<!-- Tracker Switch Tabs -->
+<div class="tracker-tabs">
+  <button
+    (click)="selectedTracker = 'mood'"
+    [class.active]="selectedTracker === 'mood'"
+  >
+    Mood
+  </button>
+  <button
+    (click)="selectedTracker = 'period'"
+    [class.active]="selectedTracker === 'period'"
+  >
+    Period
+  </button>
+</div>
+
+<!-- Month Picker -->
+<label>
+  Select Month:
+  <input
+    type="month"
+    [(ngModel)]="selectedMonth"
+    (change)="generateCalendar(); loadEntries()"
+  />
+</label>
+
+<!-- Weekday Headers -->
+<div class="calendar-weekdays">
+  <div
+    *ngFor="let w of ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']"
+    class="weekday"
+  >
+    {{ w }}
+  </div>
+</div>
+
+<!-- Calendar Grid -->
+<div class="calendar-grid">
+  <div
+    *ngFor="let day of daysInMonth"
+    class="calendar-day"
+    [ngClass]="{
+      'period-active':
+        selectedTracker === 'period' && periodByDate[day.fullDate]
+    }"
+    (click)="
+      selectedTracker === 'mood' && day.day > 0
+        ? toggleMoodPanel(day)
+        : selectedTracker === 'period' && day.day > 0
+        ? togglePeriod(day.fullDate, !periodByDate[day.fullDate])
+        : null
+    "
+    [ngStyle]="{
+      'background-color':
+        selectedTracker === 'mood'
+          ? moodColors[moodsByDate[day.fullDate]] || '#fff'
+          : '',
+      position: 'relative'
+    }"
+  >
+    <div class="date" *ngIf="day.day > 0">{{ day.day }}</div>
+
+    <!-- Mood Picker -->
+    <div
+      *ngIf="selectedTracker === 'mood' && selectedDate === day.fullDate"
+      class="mood-selector-popup"
+      (click)="$event.stopPropagation()"
+    >
+      <button
+        *ngFor="let mood of moodList"
+        class="mood-button"
+        (click)="selectMood(day, mood.name)"
+        [style.background-color]="mood.color"
+      >
+        {{ mood.name }}
+      </button>
+    </div>
+
+    <!-- Period label only if active -->
+    <div
+      *ngIf="
+        selectedTracker === 'period' &&
+        day.day > 0 &&
+        periodByDate[day.fullDate]
+      "
+      class="period-label"
+    >
+      Period
+    </div>
+  </div>
+</div>
+
+<!-- Mood Legend -->
+<div class="mood-legend" *ngIf="selectedTracker === 'mood'">
+  <h3>Mood Legend</h3>
+  <div class="legend-grid">
+    <div *ngFor="let mood of moodEntries()" class="legend-item">
+      <span
+        class="legend-color"
+        [ngStyle]="{ 'background-color': moodColors[mood] }"
+      ></span>
+      <span class="legend-label">{{ mood }}</span>
+    </div>
+  </div>
+</div>
